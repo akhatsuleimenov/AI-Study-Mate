@@ -5,10 +5,9 @@ from aiogram.utils import executor
 from dotenv import load_dotenv
 
 from bot.handlers import setup_handlers
+from config.logger_config import logger
 from database.db_manager import DatabaseManager
 from openai_api.assistant_manager import AssistantManager
-from config.logger_config import logger
-
 
 load_dotenv()
 
