@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 from bot.handlers import setup_handlers
 from database.db_manager import DatabaseManager
 from openai_api.assistant_manager import AssistantManager
+from config.logger_config import logger
+
 
 load_dotenv()
 
@@ -28,3 +30,4 @@ setup_handlers(dp, db_manager, assistant_manager, ADMIN_USER_IDS)
 
 if __name__ == "__main__":
     executor.start_polling(dp)
+    logger.info("Bot polling started")
