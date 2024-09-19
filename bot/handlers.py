@@ -36,19 +36,22 @@ def setup_router(assistant_manager, db_manager, admins):
 
     @router.message(Command(commands=["adduser"]))
     async def add_user(message: Message):
-        user_id = message.from_user.id
-        logger.info(f"Received adduser command from user {user_id}")
-        if user_id not in admins:
-            await message.reply("You are not authorized to add users.")
+        args = message.text.split()
+        if len(args) < 2:  # Check if there's at least one argument after the command
+            await message.reply("Please provide a user ID.")
             return
+
         try:
-            user_id_to_add = int(message.get_args())
+            user_id_to_add = int(args[1])
             if db_manager.add_authorized_user(user_id_to_add):
                 await message.reply("User authorized successfully.")
             else:
                 await message.reply("User was already authorized.")
         except ValueError:
             await message.reply("Please provide a valid user ID.")
+        except Exception as e:
+            logger.error(f"An error occurred: {e}")
+            await message.reply("An error occurred while adding the user.")
 
     @router.message()
     async def echo(message: Message):
