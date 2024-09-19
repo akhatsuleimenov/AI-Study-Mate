@@ -13,6 +13,9 @@ class AssistantManager:
         self.create_run(thread_id)
         return self.get_answer(thread_id)
 
+    def create_thread(self):
+        return self.client.beta.threads.create()
+
     def create_thread_message(self, thread_id, user_message):
         self.client.beta.threads.messages.create(
             thread_id=thread_id,

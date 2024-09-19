@@ -64,7 +64,7 @@ class DatabaseManager:
             conn.commit()
             return True
 
-    def get_or_create_thread(self, user_id):
+    def get_thread(self, user_id):
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -74,13 +74,16 @@ class DatabaseManager:
             if thread_id:
                 return thread_id[0]
             else:
-                thread = self.client.beta.threads.create()
-                cursor.execute(
-                    "INSERT INTO user_thread (user_id, thread_id) VALUES (?, ?)",
-                    (user_id, thread.id),
-                )
-                conn.commit()
-                return thread.id
+                return None
+
+    def save_thread(self, user_id, thread_id):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO user_thread (user_id, thread_id) VALUES (?, ?)",
+                (user_id, thread_id),
+            )
+            conn.commit()
 
     def is_rate_limited(self, user_id, limit=2):
         today = datetime.datetime.now().date()
