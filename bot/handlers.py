@@ -8,12 +8,12 @@ from config.logger_config import logger
 async def check_user_restrictions(db_manager, user_id, message):
     if not db_manager.is_user_authorized(user_id):
         await message.reply(
-            "You are not authorized, purchase access from @akhatsuleimenov to use the bot."
+            "You are not authorized, purchase access from @nurkkyz to use the bot."
         )
         return True
     if db_manager.is_rate_limited(user_id):
         await message.answer(
-            "You have reached your request limit for today. Please try again tomorrow."
+            "You have reached the hourli limit of 100 requests. Please try again later."
         )
         return True
     return False
@@ -36,6 +36,11 @@ def setup_router(assistant_manager, db_manager, admins):
 
     @router.message(Command(commands=["adduser"]))
     async def add_user(message: Message):
+        user_id = message.from_user.id
+        if user_id not in admins:
+            await message.reply("You do not have permission to use this command.")
+            return
+
         args = message.text.split()
         if len(args) < 2:  # Check if there's at least one argument after the command
             await message.reply("Please provide a user ID.")

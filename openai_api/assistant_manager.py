@@ -1,5 +1,5 @@
 import time
-
+from config.logger_config import logger
 from openai import OpenAI
 
 
@@ -27,11 +27,13 @@ class AssistantManager:
         run = self.client.beta.threads.runs.create(
             thread_id=thread_id, assistant_id=self.assistant.id
         )
-        while run.status != "completed":
+        while run.status == "queued" or run.status == "in_progress":
             time.sleep(1)
             run = self.client.beta.threads.runs.retrieve(
                 thread_id=thread_id, run_id=run.id
             )
+        if run.status == "failed":
+            raise Exception("Run failed with error: " + run.last_error.message)
 
     def get_answer(self, thread_id):
         resp = self.client.beta.threads.messages.list(thread_id=thread_id)

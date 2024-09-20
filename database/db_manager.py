@@ -85,9 +85,11 @@ class DatabaseManager:
             )
             conn.commit()
 
-    def is_rate_limited(self, user_id, limit=2):
-        today = datetime.datetime.now().date()
-        tomorrow = today + datetime.timedelta(days=1)
+    def is_rate_limited(self, user_id, limit=100):
+        current_time = datetime.datetime.now()
+        hour_start = current_time.replace(minutes=0, second=0, microsecond=0)
+        hour_end = hour_start + datetime.timedelta(hours=1)
+
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -95,7 +97,7 @@ class DatabaseManager:
                 SELECT COUNT(*) FROM user_requests
                 WHERE user_id = ? AND request_time >= ? AND request_time < ?
                 """,
-                (user_id, today, tomorrow),
+                (user_id, hour_start, hour_end),
             )
             count = cursor.fetchone()[0]
             return count >= limit
