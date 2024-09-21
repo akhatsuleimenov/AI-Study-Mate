@@ -1,6 +1,8 @@
 import time
-from config.logger_config import logger
+
 from openai import OpenAI
+
+from config.logger_config import logger
 
 
 class AssistantManager:

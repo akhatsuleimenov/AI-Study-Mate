@@ -87,7 +87,7 @@ class DatabaseManager:
 
     def is_rate_limited(self, user_id, limit=100):
         current_time = datetime.datetime.now()
-        hour_start = current_time.replace(minutes=0, second=0, microsecond=0)
+        hour_start = current_time.replace(minute=0, second=0, microsecond=0)
         hour_end = hour_start + datetime.timedelta(hours=1)
 
         with self.get_connection() as conn:
