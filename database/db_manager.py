@@ -1,11 +1,12 @@
 import datetime
-import sqlite3
 from contextlib import contextmanager
+
+import psycopg2
 
 
 class DatabaseManager:
-    def __init__(self, db_path):
-        self.db_path = db_path
+    def __init__(self, db_url):
+        self.db_url = db_url
         self.initialize_db()
 
     def initialize_db(self):
@@ -36,7 +37,7 @@ class DatabaseManager:
     @contextmanager
     def get_connection(self):
         """Provide a transactional scope around a series of operations."""
-        conn = sqlite3.connect(self.db_path)
+        conn = psycopg2.connect(self.db_url)
         try:
             yield conn
         finally:

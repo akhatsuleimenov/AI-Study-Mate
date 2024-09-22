@@ -11,18 +11,20 @@ from config.logger_config import logger
 from database.db_manager import DatabaseManager
 from openai_api.assistant_manager import AssistantManager
 
-load_dotenv()
+if os.path.exists(".env"):
+    load_dotenv()
 
 tg_bot_token = os.getenv("TG_BOT_TOKEN")
 assistant_token = os.getenv("ASSISTANT_TOKEN")
 assistant_id = os.getenv("ASSISTANT_ID")
+DATABASE_URL = os.getenv("DATABASE_URL")
 ADMIN_USERNAMES = set(
     username for username in os.getenv("ADMIN_USERNAMES", "").split(",")
 )
 
 # Initialize managers
 assistant_manager = AssistantManager(api_key=assistant_token, assistant_id=assistant_id)
-db_manager = DatabaseManager("user_threads.db")
+db_manager = DatabaseManager(DATABASE_URL)
 
 # Create and configure the bot
 bot = Bot(token=tg_bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
