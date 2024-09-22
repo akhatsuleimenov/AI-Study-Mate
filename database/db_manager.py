@@ -13,13 +13,13 @@ class DatabaseManager:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                CREATE TABLE IF NOT EXISTS user_thread (user_id INTEGER PRIMARY KEY, thread_id TEXT)
+                CREATE TABLE IF NOT EXISTS user_thread (username TEXT PRIMARY KEY, thread_id TEXT)
                 """
             )
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS user_requests (
-                    user_id INTEGER,
+                    username TEXT,
                     request_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
                 """
@@ -27,9 +27,9 @@ class DatabaseManager:
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS authorized_users (
-                    user_id INTEGER PRIMARY KEY
+                    username TEXT PRIMARY KEY NOT NULL
                 )
-            """
+                """
             )
             conn.commit()
 
@@ -42,33 +42,43 @@ class DatabaseManager:
         finally:
             conn.close()
 
-    def is_user_authorized(self, user_id):
+    def is_user_authorized(self, username):
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT 1 FROM authorized_users WHERE user_id = ?", (user_id,)
+                "SELECT 1 FROM authorized_users WHERE username = ?", (username.lower(),)
             )
             return cursor.fetchone() is not None
 
-    def add_authorized_user(self, user_id):
+    def add_authorized_user(self, username):
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT 1 FROM authorized_users WHERE user_id = ?", (user_id,)
+                "SELECT 1 FROM authorized_users WHERE username = ?", (username.lower(),)
             )
             if cursor.fetchone():
                 return False  # User already exists
             cursor.execute(
-                "INSERT INTO authorized_users (user_id) VALUES (?)", (user_id,)
+                "INSERT INTO authorized_users (username) VALUES (?)",
+                (username.lower(),),
             )
             conn.commit()
             return True
 
-    def get_thread(self, user_id):
+    def delete_authorized_user(self, username):
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT thread_id FROM user_thread WHERE user_id = ?", (user_id,)
+                "DELETE FROM authorized_users WHERE username = ?", (username.lower(),)
+            )
+            conn.commit()
+            return True if cursor.rowcount > 0 else False
+
+    def get_thread(self, username):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT thread_id FROM user_thread WHERE username = ?", (username,)
             )
             thread_id = cursor.fetchone()
             if thread_id:
@@ -76,16 +86,16 @@ class DatabaseManager:
             else:
                 return None
 
-    def save_thread(self, user_id, thread_id):
+    def save_thread(self, username, thread_id):
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO user_thread (user_id, thread_id) VALUES (?, ?)",
-                (user_id, thread_id),
+                "INSERT INTO user_thread (username, thread_id) VALUES (?, ?)",
+                (username, thread_id),
             )
             conn.commit()
 
-    def is_rate_limited(self, user_id, limit=100):
+    def is_rate_limited(self, username, limit=100):
         current_time = datetime.datetime.now()
         hour_start = current_time.replace(minute=0, second=0, microsecond=0)
         hour_end = hour_start + datetime.timedelta(hours=1)
@@ -95,15 +105,17 @@ class DatabaseManager:
             cursor.execute(
                 """
                 SELECT COUNT(*) FROM user_requests
-                WHERE user_id = ? AND request_time >= ? AND request_time < ?
+                WHERE username = ? AND request_time >= ? AND request_time < ?
                 """,
-                (user_id, hour_start, hour_end),
+                (username, hour_start, hour_end),
             )
             count = cursor.fetchone()[0]
             return count >= limit
 
-    def log_request(self, user_id):
+    def log_request(self, username):
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO user_requests (user_id) VALUES (?)", (user_id,))
+            cursor.execute(
+                "INSERT INTO user_requests (username) VALUES (?)", (username,)
+            )
             conn.commit()
