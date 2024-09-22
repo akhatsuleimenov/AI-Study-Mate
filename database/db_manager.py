@@ -47,7 +47,8 @@ class DatabaseManager:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT 1 FROM authorized_users WHERE username = ?", (username.lower(),)
+                "SELECT 1 FROM authorized_users WHERE username = %s",
+                (username.lower(),),
             )
             return cursor.fetchone() is not None
 
@@ -55,12 +56,13 @@ class DatabaseManager:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT 1 FROM authorized_users WHERE username = ?", (username.lower(),)
+                "SELECT 1 FROM authorized_users WHERE username = %s",
+                (username.lower(),),
             )
             if cursor.fetchone():
                 return False  # User already exists
             cursor.execute(
-                "INSERT INTO authorized_users (username) VALUES (?)",
+                "INSERT INTO authorized_users (username) VALUES (%s)",
                 (username.lower(),),
             )
             conn.commit()
@@ -70,7 +72,7 @@ class DatabaseManager:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "DELETE FROM authorized_users WHERE username = ?", (username.lower(),)
+                "DELETE FROM authorized_users WHERE username = %s", (username.lower(),)
             )
             conn.commit()
             return True if cursor.rowcount > 0 else False
@@ -79,7 +81,7 @@ class DatabaseManager:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT thread_id FROM user_thread WHERE username = ?", (username,)
+                "SELECT thread_id FROM user_thread WHERE username = %s", (username,)
             )
             thread_id = cursor.fetchone()
             if thread_id:
@@ -91,7 +93,7 @@ class DatabaseManager:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO user_thread (username, thread_id) VALUES (?, ?)",
+                "INSERT INTO user_thread (username, thread_id) VALUES (%s, %s)",
                 (username, thread_id),
             )
             conn.commit()
@@ -106,7 +108,7 @@ class DatabaseManager:
             cursor.execute(
                 """
                 SELECT COUNT(*) FROM user_requests
-                WHERE username = ? AND request_time >= ? AND request_time < ?
+                WHERE username = %s AND request_time >= %s AND request_time < %s
                 """,
                 (username, hour_start, hour_end),
             )
@@ -117,6 +119,6 @@ class DatabaseManager:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO user_requests (username) VALUES (?)", (username,)
+                "INSERT INTO user_requests (username) VALUES (%s)", (username,)
             )
             conn.commit()
