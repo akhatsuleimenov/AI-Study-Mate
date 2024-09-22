@@ -1,3 +1,6 @@
+import os
+
+import requests
 from aiogram import Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
@@ -21,7 +24,7 @@ async def check_user_restrictions(db_manager, username, message, admins):
     return True
 
 
-def setup_router(assistant_manager, db_manager, admins):
+def setup_router(assistant_manager, db_manager, admins, tg_bot_token):
     router = Router()
 
     @router.message(CommandStart())
@@ -79,17 +82,39 @@ def setup_router(assistant_manager, db_manager, admins):
     @router.message()
     async def echo(message: Message):
         username = message.from_user.username
-        logger.info(f"Received {message.text} from user {username}")
+        logger.info(
+            f"Received {message.text if message.text else 'voice message'} from user {username}"
+        )
         if await check_user_restrictions(db_manager, username, message, admins):
             try:
+                text = message.text
+                if message.voice:
+                    text = await handle_voice_message(message)
                 thread_id = db_manager.get_thread(username)
                 if thread_id is None:
                     thread_id = assistant_manager.create_thread().id
                     db_manager.save_thread(username, thread_id)
-                answer = assistant_manager.handle_message(thread_id, message.text)
+                answer = assistant_manager.handle_message(thread_id, text)
                 await message.answer(answer)
                 db_manager.log_request(username)
             except Exception as e:
                 logger.error(f"An error occurred: {e}")
+
+    async def handle_voice_message(message: Message):
+        out = await message.bot.get_file(message.voice.file_id)
+        file_url = f"https://api.telegram.org/file/bot{tg_bot_token}/{out.file_path}"
+
+        response = requests.get(file_url)
+        if response.status_code != 200:
+            raise Exception("Failed to download the audio file.")
+
+        audio_file_path = f"{message.voice.file_unique_id}.ogg"
+        with open(audio_file_path, "wb") as file:
+            file.write(response.content)
+
+        transcribed_text = assistant_manager.transcribe_audio(audio_file_path)
+        os.remove(audio_file_path)
+
+        return transcribed_text
 
     return router

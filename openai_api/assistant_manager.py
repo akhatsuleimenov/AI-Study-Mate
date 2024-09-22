@@ -2,8 +2,6 @@ import time
 
 from openai import OpenAI
 
-from config.logger_config import logger
-
 
 class AssistantManager:
     def __init__(self, api_key, assistant_id):
@@ -40,3 +38,10 @@ class AssistantManager:
     def get_answer(self, thread_id):
         resp = self.client.beta.threads.messages.list(thread_id=thread_id)
         return resp.data[0].content[0].text.value
+
+    def transcribe_audio(self, audio_file_path):
+        with open(audio_file_path, "rb") as audio_file:
+            return self.client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file,
+            ).text

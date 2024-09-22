@@ -31,7 +31,7 @@ bot = Bot(token=tg_bot_token, default=DefaultBotProperties(parse_mode=ParseMode.
 dp = Dispatcher()
 
 # Setup router with dependencies
-router = setup_router(assistant_manager, db_manager, ADMIN_USERNAMES)
+router = setup_router(assistant_manager, db_manager, ADMIN_USERNAMES, tg_bot_token)
 dp.include_router(router)
 
 
