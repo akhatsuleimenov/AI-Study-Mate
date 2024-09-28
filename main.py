@@ -28,7 +28,7 @@ db_manager = DatabaseManager(DATABASE_URL)
 
 # Create and configure the bot
 bot = Bot(token=tg_bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-dp = Dispatcher(bot)
+dp = Dispatcher()
 
 # Setup router with dependencies
 router = setup_router(assistant_manager, db_manager, ADMIN_USERNAMES, tg_bot_token)
