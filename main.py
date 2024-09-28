@@ -28,7 +28,7 @@ db_manager = DatabaseManager(DATABASE_URL)
 
 # Create and configure the bot
 bot = Bot(token=tg_bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-dp = Dispatcher()
+dp = Dispatcher(bot)
 
 # Setup router with dependencies
 router = setup_router(assistant_manager, db_manager, ADMIN_USERNAMES, tg_bot_token)
@@ -37,7 +37,10 @@ dp.include_router(router)
 
 async def main() -> None:
     logger.info("Bot is starting...")
-    await dp.start_polling(bot)
+    try:
+        await dp.start_polling(bot, timeout=20, relax=0.1)
+    except Exception as e:
+        logger.error("An error occurred during polling: %s", str(e))
 
 
 if __name__ == "__main__":
