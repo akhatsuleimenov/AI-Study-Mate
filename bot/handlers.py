@@ -33,7 +33,7 @@ def setup_router(assistant_manager, db_manager, admins, tg_bot_token):
         logger.info(f"Received start or help command from user {username}")
         if await check_user_restrictions(db_manager, username, message, admins):
             await message.reply(
-                "Hi! I'm an OnStudy English Tutor Bot. Ask me how to learn English."
+                "Hi! I'm an College Admission Mentor Bot. Ask me anything about college admissions."
             )
 
     async def handle_user_command(message: Message, command_handler):
